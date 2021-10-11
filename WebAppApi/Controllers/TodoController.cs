@@ -1,13 +1,11 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using WebAppApi.Application.Commands.Todo;
+using WebAppApi.Application.Infra;
 using WebAppApi.Application.Models;
-using WebAppApi.DataAccess;
 
 namespace WebAppApi.Controllers
 {
@@ -16,24 +14,24 @@ namespace WebAppApi.Controllers
     public class TodoController : ControllerBase
     {
         public IMediator Mediator { get; }
-        public DatabaseContext DatabaseContext { get; }
+        public IRepositoryTodo RepositoryTodo { get; }
 
-        public TodoController(IMediator mediator, DatabaseContext databaseContext)
+        public TodoController(IMediator mediator, IRepositoryTodo repositoryTodo)
         {
             Mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-            DatabaseContext = databaseContext ?? throw new ArgumentNullException(nameof(databaseContext));
+            RepositoryTodo = repositoryTodo ?? throw new ArgumentNullException(nameof(repositoryTodo));
         }
 
         [HttpGet]
-        public async Task<IEnumerable<Todo>> Get()
+        public IAsyncEnumerable<Todo> Get()
         {
-            return await DatabaseContext.Todo.ToListAsync();
+            return RepositoryTodo.GetAsync();
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Todo>> Get(int id)
         {
-            var result = await DatabaseContext.Todo.FindAsync(id);
+            var result = await RepositoryTodo.GetAsync(id);
             if (result is not null)
             {
                 return Ok(result);
@@ -44,7 +42,7 @@ namespace WebAppApi.Controllers
         [HttpPost]
         public async Task<ActionResult<Todo>> Post([FromBody] TodoAddCommand value)
         {
-            return CreatedAtAction(nameof(Get), await Mediator.Send(value));            
+            return CreatedAtAction(nameof(Get), await Mediator.Send(value));
         }
 
         [HttpPut("{id}")]
@@ -60,8 +58,8 @@ namespace WebAppApi.Controllers
         public async Task<ActionResult<bool>> Delete(int id)
         {
             bool result = await Mediator.Send(new TodoDeleteCommand { Id = id });
-            return result 
-                ? Ok(new { status = "removed", code = 200 }) 
+            return result
+                ? Ok(new { status = "removed", code = 200 })
                 : NotFound(new { status = "not found" });
         }
     }

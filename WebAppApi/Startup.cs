@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WebAppApi.Application.Infra;
 using WebAppApi.DataAccess;
 
 namespace WebAppApi
@@ -28,13 +30,23 @@ namespace WebAppApi
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<RouteOptions>(c => 
+            {
+                c.LowercaseQueryStrings = true;
+                c.LowercaseUrls = true;
+            });
+
             services.AddMediatR(typeof(Startup));
+
             services.AddDbContext<DatabaseContext>(config =>
             {
                 config.UseSqlite("Data Source = ./db.sqlite");                
             });
 
+            services.AddScoped<IRepositoryTodo, RepositoryTodo>();
+
             services.AddControllers();
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebAppApi", Version = "v1" });

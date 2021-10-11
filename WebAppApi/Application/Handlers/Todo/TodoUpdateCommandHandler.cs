@@ -3,17 +3,17 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using WebAppApi.Application.Commands.Todo;
-using WebAppApi.DataAccess;
+using WebAppApi.Application.Infra;
 
 namespace WebAppApi.Application.Handlers.Todo
 {
     public class TodoUpdateCommandHandler : IRequestHandler<TodoUpdateCommand, bool>
     {
-        private readonly DatabaseContext _databaseContext;
+        public IRepositoryTodo RepositoryTodo { get; }
 
-        public TodoUpdateCommandHandler(DatabaseContext databaseContext)
+        public TodoUpdateCommandHandler(IRepositoryTodo repositoryTodo)
         {
-            _databaseContext = databaseContext ?? throw new ArgumentNullException(nameof(databaseContext));
+            RepositoryTodo = repositoryTodo ?? throw new ArgumentNullException(nameof(repositoryTodo));
         }
 
         public async Task<bool> Handle(TodoUpdateCommand request, CancellationToken cancellationToken)
@@ -26,9 +26,8 @@ namespace WebAppApi.Application.Handlers.Todo
                     Description = request.Description,
                     Done = request.Done
                 };
-                _databaseContext.Todo.Update(todo);
-                await _databaseContext.SaveChangesAsync(cancellationToken);
-                return true;
+                await RepositoryTodo.UpdateAsync(todo);
+                return await RepositoryTodo.CommitAsync(cancellationToken) > 0;
             }
             catch (Exception)
             {
