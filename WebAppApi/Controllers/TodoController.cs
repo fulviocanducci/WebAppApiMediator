@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using WebAppApi.Application.Commands.Todo;
+using WebAppApi.Application.Commands.TodoCommand;
 using WebAppApi.Application.Infra;
 using WebAppApi.Application.Models;
 
@@ -11,6 +11,7 @@ namespace WebAppApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Produces("application/json")]
     public class TodoController : ControllerBase
     {
         public IMediator Mediator { get; }
@@ -57,10 +58,17 @@ namespace WebAppApi.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<bool>> Delete(int id)
         {
-            bool result = await Mediator.Send(new TodoDeleteCommand { Id = id });
-            return result
-                ? Ok(new { status = "removed", code = 200 })
-                : NotFound(new { status = "not found" });
+            try
+            {
+                bool result = await Mediator.Send(new TodoDeleteCommand(id));
+                return result
+                    ? Ok(new { status = "removed", code = 200 })
+                    : NotFound(new { status = "not found" });
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }

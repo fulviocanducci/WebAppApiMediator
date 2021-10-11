@@ -1,20 +1,15 @@
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using WebAppApi.Application.Commands.TodoCommand;
 using WebAppApi.Application.Infra;
+using WebAppApi.Application.Models;
 using WebAppApi.DataAccess;
 
 namespace WebAppApi
@@ -30,7 +25,13 @@ namespace WebAppApi
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<RouteOptions>(c => 
+            services.AddAutoMapper(config =>
+            {
+                config.CreateMap<Todo, TodoAddCommand>().ReverseMap();
+                config.CreateMap<Todo, TodoUpdateCommand>().ReverseMap();
+            });
+
+            services.Configure<RouteOptions>(c =>
             {
                 c.LowercaseQueryStrings = true;
                 c.LowercaseUrls = true;
@@ -40,7 +41,7 @@ namespace WebAppApi
 
             services.AddDbContext<DatabaseContext>(config =>
             {
-                config.UseSqlite("Data Source = ./db.sqlite");                
+                config.UseSqlite("Data Source = ./db.sqlite");
             });
 
             services.AddScoped<IRepositoryTodo, RepositoryTodo>();

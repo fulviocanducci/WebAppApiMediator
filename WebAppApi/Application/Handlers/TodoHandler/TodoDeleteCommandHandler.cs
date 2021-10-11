@@ -2,10 +2,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using WebAppApi.Application.Commands.Todo;
+using WebAppApi.Application.Commands.TodoCommand;
 using WebAppApi.Application.Infra;
+using WebAppApi.Application.Models;
 
-namespace WebAppApi.Application.Handlers.Todo
+namespace WebAppApi.Application.Handlers.TodoHandler
 {
     public class TodoDeleteCommandHandler : IRequestHandler<TodoDeleteCommand, bool>
     {
@@ -20,7 +21,7 @@ namespace WebAppApi.Application.Handlers.Todo
         {
             try
             {
-                var model = RepositoryTodo.GetAsync(request.Id);
+                Todo model = await RepositoryTodo.GetAsync(request.Id);
                 if (model is not null)
                 {
                     await RepositoryTodo.RemoveAsync(model);

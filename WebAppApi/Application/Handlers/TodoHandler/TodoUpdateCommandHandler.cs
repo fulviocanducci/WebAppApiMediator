@@ -1,31 +1,30 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using WebAppApi.Application.Commands.Todo;
+using WebAppApi.Application.Commands.TodoCommand;
 using WebAppApi.Application.Infra;
+using WebAppApi.Application.Models;
 
-namespace WebAppApi.Application.Handlers.Todo
+namespace WebAppApi.Application.Handlers.TodoHandler
 {
     public class TodoUpdateCommandHandler : IRequestHandler<TodoUpdateCommand, bool>
     {
         public IRepositoryTodo RepositoryTodo { get; }
+        public IMapper Mapper { get; }
 
-        public TodoUpdateCommandHandler(IRepositoryTodo repositoryTodo)
+        public TodoUpdateCommandHandler(IRepositoryTodo repositoryTodo, IMapper mapper)
         {
             RepositoryTodo = repositoryTodo ?? throw new ArgumentNullException(nameof(repositoryTodo));
+            Mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         public async Task<bool> Handle(TodoUpdateCommand request, CancellationToken cancellationToken)
         {
             try
             {
-                var todo = new Models.Todo()
-                {
-                    Id = request.Id,
-                    Description = request.Description,
-                    Done = request.Done
-                };
+                var todo = Mapper.Map<Todo>(request);
                 await RepositoryTodo.UpdateAsync(todo);
                 return await RepositoryTodo.CommitAsync(cancellationToken) > 0;
             }
